@@ -3,146 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EV Charging Quota</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #eef2f7;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    
-    .quota-container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-    
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
-      color: #4a90e2;
-    }
-    
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-bottom: 20px;
-      box-sizing: border-box;
-    }
-    
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #4a90e2;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #357abd;
-    }
-
-    .quota-info {
-      font-size: 20px;
-      margin-top: 20px;
-      color: #333;
-    }
-
-    .error {
-      color: red;
-      font-size: 18px;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 20px;
-      }
-
-      .quota-container {
-        padding: 30px;
-      }
-
-      h1 {
-        font-size: 24px;
-      }
-
-      input[type="text"], button {
-        font-size: 14px;
-      }
-
-      .quota-info {
-        font-size: 18px;
-      }
-    }
-  </style>
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div class="quota-container">
-    <h1>Your EV Charging Quota</h1>
-
-    <!-- Input for RFID card -->
-    <input type="text" id="rfid" placeholder="Enter your RFID" required>
-    <button onclick="fetchQuota()">Check Quota</button>
-
-    <!-- Quota information display -->
-    <p class="quota-info" id="quota-info">Enter your RFID to view your quota.</p>
-    <p class="error" id="error"></p>
+  <div class="login-container">
+    <h2>Login</h2>
+    <div id="error" style="color: red;"></div>
+    
+    <!-- Username and password input fields -->
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
   </div>
 
   <script>
-    function fetchQuota() {
-      // Get the RFID value entered by the user
-      const rfid = document.getElementById('rfid').value;
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-      // Ensure RFID is not empty
-      if (!rfid) {
-        document.getElementById('error').textContent = 'Please enter your RFID.';
+      if (!username || !password) {
+        document.getElementById('error').textContent = 'Please enter username and password.';
         return;
       }
 
-      // Clear error message
       document.getElementById('error').textContent = '';
 
-      // Make the API request to the OCPP CMS backend
-      fetch(`/get-quota?rfid=${rfid}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            // Show error if user is not found
-            document.getElementById('error').textContent = data.error;
-            document.getElementById('quota-info').textContent = '';
-          } else {
-            // Display the remaining quota if successful
-            document.getElementById('quota-info').textContent = `You have ${data.remaining_quota} kWh remaining.`;
-          }
-        })
-        .catch(error => {
-          // Handle any errors from the backend
-          console.error('Error:', error);
-          document.getElementById('error').textContent = 'Unable to fetch quota at this time.';
-        });
+      fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = '/quota.html';
+        } else {
+          document.getElementById('error').textContent = data.error;
+        }
+      })
+      .catch(error => {
+        document.getElementById('error').textContent = 'Unable to log in at this time.';
+      });
     }
   </script>
-
 </body>
 </html>
-

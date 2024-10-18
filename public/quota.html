@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Quota</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="quota-container">
+    <h2>Your Quota</h2>
+    
+    <div id="error" style="color: red;"></div>
+    
+    <!-- Optional: Make RFID field readonly or remove it altogether -->
+    <input type="text" id="rfid" placeholder="Enter your RFID" />
+    <button onclick="fetchQuota()">Check Quota</button>
+    
+    <!-- Quota display area -->
+    <p id="quota-info"></p>
+
+    <!-- Logout button -->
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    function fetchQuota() {
+      const rfid = document.getElementById('rfid').value;
+
+      if (!rfid) {
+        document.getElementById('error').textContent = 'Please enter RFID number.';
+        return;
+      }
+
+      document.getElementById('error').textContent = '';
+
+      fetch('/get-quota', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ rfid })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.remaining_quota !== undefined) {
+          document.getElementById('quota-info').textContent = `Remaining Quota: ${data.remaining_quota} kWh`;
+        } else {
+          document.getElementById('error').textContent = data.error || 'Unable to fetch quota at this time.';
+          document.getElementById('quota-info').textContent = '';
+        }
+      })
+      .catch(error => {
+        document.getElementById('error').textContent = 'Unable to fetch quota at this time.';
+      });
+    }
+
+    function logout() {
+      fetch('/logout', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = '/';
+        }
+      })
+      .catch(error => {
+        document.getElementById('error').textContent = 'Unable to log out at this time.';
+      });
+    }
+  </script>
+</body>
+</html>
+
+
